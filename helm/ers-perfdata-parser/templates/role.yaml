@@ -1,0 +1,24 @@
+# Using Kubernetes API to discover Hazelcast members requires granting certain permissions
+# Therefore, we require role and rolebinding.yaml
+
+{{if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.service.name }}
+  labels:
+    app: {{ .Values.service.name }}
+    chart: {{ .Values.service.name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: "{{ .Release.Name }}-{{ .Values.service.name }}"
+    heritage: "{{ .Release.Service }}"
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - pods
+      - nodes
+    verbs:
+      - get
+      - list
+  {{ end }}

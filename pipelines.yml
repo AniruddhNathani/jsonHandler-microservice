@@ -1,0 +1,95 @@
+pipelines:
+  general:
+    org: inception
+    name: ers-perfdata-parser
+    debug: true
+    version:
+      pattern: "*.*.^"
+      image: "quay.cnqr.delivery/da-workflow/docker-versioner:0.7.0"
+  tools:
+    docker:
+      imageName: inception/ers-perfdata-parser
+      uri: quay.cnqr.delivery
+      credentials:
+        id: docker_robot
+      buildArgs:
+        COMMIT_SHA: "{{ git_commit }}"
+        BUILD_VERSION: "{{ build_version }}"
+    slack:
+      token: KAcdKngrYVVs7PUGsHBNIYor
+      teamDomain: concur-blue
+      channel: gregsroom
+    github:
+        uri: https://github.concur.com/inception/ers-perfdata-parser
+        patterns:
+          develop: develop
+    buildhub:
+        workflows:
+          repo: https://github.concur.com/containerhosting/workflows.git
+          branch: "5.4.0"
+    quay:
+      registry: quay.cnqr.delivery
+      repo: inception/ers-perfdata-parser
+      credentialId: "docker_robot"
+    helm:
+      name: ers-perfdata-parser
+      version: 0.1.0
+      k8s:
+        namespace: inception
+        credentials:
+          id: kube_tech_config
+      registry:
+        url: "{{ QUAY_URI }}"
+        path: inception/ers-perfdata-parser
+        credentials:
+          id: docker_robot
+      package:
+        path: ers-perfdata-parser
+      deploy:
+        params: "--tiller-namespace inception --namespace inception --recreate-pods -f helm/ers-perfdata-parser/values.yaml"
+      test:
+        timeout: 60
+  branches:
+    develop:
+      steps:
+        - docker:
+          - build:
+              imageTag: "{{ git_commit }}"
+              buildArgs:
+                COMMIT_SHA: "{{ git_commit }}"
+                HTTP_PROXY: "{{ HTTP_PROXY }}"
+                HTTPS_PROXY: "{{ HTTPS_PROXY }}"
+          - push:
+              imageTag: "{{ git_commit }}"
+              additionalTags:
+                - "{{ current_branch }}"
+        - deploy:
+          - to:
+            - awsqa
+        - k8s:
+            - deploy:
+                containerBuild: true
+                releaseCandidate: true
+                namespace: inception
+                accountNames:
+                  - spend
+                environments:
+                  - integration
+                helmChartDir: ./helm/ers-perfdata-parser
+                valuesFiles:
+                  - ./helm/ers-perfdata-parser/values-integration.yaml
+                vars:
+                  deploymentId: "{{ BUILDHUB_SHORT_VERSION }}-{{ BRANCH_NAME }}-{{ BUILDHUB_SHORT_VERSION }}"
+  deployments:
+    awsqa:
+      develop:
+        steps:
+          - helm:
+            - package:
+            - deploy:
+                releaseName: "ers-perfdata-parser-qa"
+                params: "--tiller-namespace inception --namespace inception --recreate-pods -f helm/ers-perfdata-parser/values.yaml -f helm/ers-perfdata-parser/values-qa.yaml --set env.gitCommit={{ git_commit }}"
+ 
+ 
+ 
+ 

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+    <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+</head>
+
+<style>
+body {
+    background-color: floralwhite;
+}
+
+.table_border{
+        border: 1px solid black;
+      }
+
+h1 {
+    color: cornflowerblue; text-align: center;
+}
+
+h2 {
+    color: cornflowerblue;;
+}
+
+.align-center {
+    display: block;
+    margin: 1.0em auto;
+    text-align: center;
+    border: 1px solid black;
+}
+
+legend {
+    font-size: 18px;
+}
+
+textarea {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.table.dataTable  {
+    font-size: 16px;
+    width = 50%;
+}
+</style>
+<script>
+
+</script>
+<body >
+<h1>Welcome to the Application</h1>
+<form  method="post" action="/">
+    <fieldset class="align-center">
+        <legend>Enter a <b>db_perfdata_item</b> or <b>servicecall_perfdata_items </b> JSON object to view its details</legend>
+                <p>
+            <textarea type = "text" style="font-size:15pt;" name = "myText" rows="8" cols="100"></textarea>
+                </p>
+            <button type="submit" class="button" style="font-size:15px">Submit</button>
+
+    </fieldset>
+</form>
+{% if objects %}
+    <h2>All Details</h2>
+    <table id="details" class="cell-border hover order-column nowrap compact table_border" style="width:50%"></table>
+    <h2>Total Duration</h2>
+    <table id="groupby" class="cell-border hover order-column nowrap compact table_border" style="width:50%"></table>
+    <h2>Total Count By Name</h2>
+    <table id="count" class="cell-border hover order-column nowrap compact table_border" style="width:50%"></table>
+
+    <script>
+
+        $(document).ready(function() {
+            $.fn.dataTable.ext.errMode = 'none';
+
+            var data_objects =  {{objects|safe}};
+            $("#details").DataTable({
+            data: data_objects,
+            "pageLength": 100,
+            columnDefs: [
+                { targets: "_all",
+                  className: 'dt[-head|-body]-center'
+                }
+            ],
+            "columns": [
+                { "data": "index", "title": "Index"},
+                { "data": "name", "title": "Name"},
+                { "data": "duration", "title": "Duration" },
+                { "data": "category", "title": "Category"},
+                { "data": "executed", "title": "Executed" },
+                { "data": "categorized", "title": "Categorized" },
+                { "data": "query", "title": "Query"},
+                { "data": "args", "title": "Args" },
+                { "data": "server", "title": "Server" },
+                { "data": "database", "title": "Database" },
+                { "data": "argString", "title": "ArgString" }
+            ]
+            });
+
+            var grouped_objects =  {{grouped|safe}};
+            $("#groupby").DataTable({
+            data: grouped_objects,
+            "pageLength": 100,
+            columnDefs: [
+                {
+                 className: 'dt-body-center'
+                }
+            ],
+            "columns": [
+                { "data": "name", "title": "Name"},
+                { "data": "duration", "title": "Total Duration" },
+            ]
+            });
+
+            var counted_objects =  {{count|safe}};
+            $("#count").DataTable({
+            data: counted_objects,
+            "pageLength": 100,
+            columnDefs: [
+                {
+                 targets: -1,
+                 className: 'dt-body-center'
+                }
+            ],
+            "columns": [
+                { "data": "name", "title": "Name"},
+                { "data": "count", "title": "Total Count" },
+            ]
+            });
+        });
+    </script>
+{% endif%}
+
+</body>
+</html>

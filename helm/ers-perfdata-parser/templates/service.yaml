@@ -1,0 +1,35 @@
+# =========================================================
+# 2nd action == Service from Hazelcast Servers pods
+# =========================================================
+# Note the service.name is configured in Consul and used
+# when initializing Hazelcast Server to find the cluster members.
+# If you change one, change the other. See HazelcastConfiguration.java
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+  namespace:  {{ .Values.service.namespace }}
+{{- if .Values.service.annotations }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    app: {{ .Values.service.name }}
+    chart: {{ .Values.service.name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}-{{ .Values.service.name }}
+    heritage: {{ .Release.Service }}-{{ .Values.service.name }}
+spec:
+  type: {{ .Values.service.type }}
+  clusterIP: {{ .Values.service.clusterIP }}
+  selector:
+    app: {{ .Values.service.name }}
+    release: {{ .Release.Name }}-{{ .Values.service.name }}
+  ports:
+    - name: hz-port
+      protocol: TCP
+      port: {{ .Values.service.hzPort }}
+      targetPort: {{ .Values.service.hzPort }}
+    - name: http
+      protocol: TCP
+      port: {{ .Values.service.externalPort }}
+      targetPort: {{ .Values.service.internalPort }}

@@ -1,0 +1,25 @@
+# QA specific deployment values
+replicaCount: 1
+image:
+  repository: quay.cnqr.delivery/inception/ers-perfdata-parser
+  tag: develop
+  pullPolicy: Always
+service:
+  name: ers-perfdata-parser-qa
+env:
+  springProfile: qa
+  jvmHeapSize: 3072M
+resources:
+  limits:
+    cpu: 1
+    memory: 4Gi
+  requests:
+    cpu: 1
+    memory: 4Gi
+ingress:
+  enabled: true
+  hosts:
+    - ers-perfdata-parser-qa.us-west-2.nonprod.cnqr.delivery
+  tls:
+    - hosts:
+      - ers-perfdata-parser-qa.us-west-2.nonprod.cnqr.delivery
